@@ -82,7 +82,7 @@ namespace Connect_Four
 			{
 				await Task.Delay(50);
 
-				if (chk_AI.Checked == true && RedTurn==false)
+				if (chk_AI.Checked == true && RedTurn == false)
 				{
 					AutoMove();
 					RedTurn = true;
@@ -140,7 +140,7 @@ namespace Connect_Four
 		}
 		bool CheckDraw()
 		{
-			for(int row = 0; row < 7; row++)
+			for (int row = 0; row < 7; row++)
 			{
 				for (int i = 0; i < 6; i++)
 				{
@@ -220,8 +220,8 @@ namespace Connect_Four
 					{
 						if (Holes[x, y - 1].BackColor == Holes[x, y].BackColor)
 						{
-							Holes[x,y].Text = "X";
-							Holes[x,y].Font = new Font("Microsoft Sans Serif", 35);
+							Holes[x, y].Text = "X";
+							Holes[x, y].Font = new Font("Microsoft Sans Serif", 35);
 							return true;
 						}
 					}
@@ -274,11 +274,11 @@ namespace Connect_Four
 				DialogResult Question = MessageBox.Show("Do You Want to Go First?", "", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
 				if (DialogResult == DialogResult.Yes)
 				{
-					RedTurn = true;
+					RedTurn = false;
 				}
 				else
 				{
-					RedTurn = false;					
+					RedTurn = true;
 				}
 			}
 			else
@@ -297,23 +297,21 @@ namespace Connect_Four
 				return false;
 			}
 		}
-		private void AutoMove()
+		public int BestMove()
 		{
 			Random rnd = new Random();
-			int r = 3;
-			while (true)
+			if (CheckRow(3))
 			{
-				if (CheckRow(r))
-				{
-					r = rnd.Next(7);
-				}
-				else
-				{
-					break;
-				}
+				return rnd.Next(7);
 			}
-			
-			FillRows(r);
+			else
+			{
+				return 3;
+			}
+		}
+		private void AutoMove()
+		{
+			FillRows(BestMove());
 			RedTurn = !RedTurn;
 		}
 		private void SettingPanel_MouseDown(object sender, MouseEventArgs e)
@@ -330,16 +328,16 @@ namespace Connect_Four
 					MessageBox.Show("Cleared the Board...\nStopped Playing Automatically!", "Warning!", MessageBoxButtons.OK, MessageBoxIcon.Warning);
 					chk_AI.CheckState = CheckState.Unchecked;
 				}
-					BtnClear_Click_1(null, null);
+				BtnClear_Click_1(null, null);
 			}
 			if (e.Shift && e.KeyCode == Keys.Escape)
 			{
 				Application.Exit();
 			}
 			bool ArrowExists = false;
-			if (e.KeyCode == Keys.D ||e.KeyCode == Keys.Right)
-			{				
-				for(int row = 0; row < 7; row++)
+			if (e.KeyCode == Keys.D || e.KeyCode == Keys.Right)
+			{
+				for (int row = 0; row < 7; row++)
 				{
 					if (Holes[row, 5].Text != "↓")
 					{
@@ -367,7 +365,7 @@ namespace Connect_Four
 					Holes[++ArrowPos, 5].Text = "↓";
 				}
 			}
-			if (e.KeyCode == Keys.A||e.KeyCode==Keys.Left)
+			if (e.KeyCode == Keys.A || e.KeyCode == Keys.Left)
 			{
 				for (int row = 0; row < 7; row++)
 				{
@@ -404,7 +402,7 @@ namespace Connect_Four
 					FillRows(ArrowPos);
 				}
 			}
-			if (e.Control&&e.KeyCode == Keys.M)
+			if (e.Control && e.KeyCode == Keys.M)
 			{
 				if (!cb_Music.Checked)
 				{
@@ -447,12 +445,12 @@ namespace Connect_Four
 		{
 			var t = true;
 			e.Cancel = t;
-			while(Opacity > 0.0)
+			while (Opacity > 0.0)
 			{
 				await Task.Delay(80);
 				Opacity -= 0.05;
 			}
-			var f = false;			
+			var f = false;
 			Opacity = 0;
 			e.Cancel = f;
 			Application.Exit();
