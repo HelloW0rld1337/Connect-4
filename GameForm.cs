@@ -15,7 +15,7 @@ namespace Connect_Four
 {
 	public partial class GameForm : Form
 	{
-    string VictoryMessage = "Jeff";
+		string VictoryMessage = "Jeff";
 		SoundPlayer soundPlayer = new SoundPlayer(Properties.Resources.DropMusic);
 		Button[,] Holes = new Button[7, 6];
 		bool RedTurn = true;
