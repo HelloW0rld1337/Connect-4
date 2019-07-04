@@ -20,6 +20,19 @@ namespace Connect_Four
 		bool RedTurn = true;
 		bool BlueTurn = false;
 		int ArrowPos;
+		public Space peekRow(int row)
+		{
+			for (int i = 0; i < 6; i++)
+			{
+				if (Holes[row, i].Enabled == true)
+				{
+					//notifyIcon1.ShowBalloonTip(2000, "Connect 4", row.ToString(), ToolTipIcon.None);
+					return new Space(row, i);
+
+				}
+			}
+			return null;
+		}
 		public GameForm()
 		{
 			InitializeComponent();
@@ -75,6 +88,10 @@ namespace Connect_Four
 			soundPlayer.PlayLooping();
 
 			gameloop();
+
+			notifyIcon1.Icon = Icon;
+
+			ColourDelayTime = 500;
 		}
 		private async void gameloop()
 		{
@@ -119,13 +136,28 @@ namespace Connect_Four
 					{
 						if (RedTurn == true)
 						{
-							MessageBox.Show("Red Won!");
-							BtnClear_Click_1(null, null);
+							if (cb_Notification.Checked)
+							{
+								notifyIcon1.ShowBalloonTip(1000, "Red Has Won!", "Congratulations to Player Red!", ToolTipIcon.Info);
+								BtnClear_Click_1(null, null);
+							}
+							else
+							{
+								MessageBox.Show("Red Won!");
+								BtnClear_Click_1(null, null);
+							}
 						}
 						else if (RedTurn == false)
 						{
-							MessageBox.Show("Blue Won!");
-							BtnClear_Click_1(null, null);
+							if (cb_Notification.Checked)
+							{
+								notifyIcon1.ShowBalloonTip(1000, "Blue Has Won!", "Congratulations to Player Blue!", ToolTipIcon.Info); BtnClear_Click_1(null, null);
+							}
+							else
+							{
+								MessageBox.Show("Blue Won!");
+								BtnClear_Click_1(null, null);
+							}
 						}
 					}
 					RedTurn = !RedTurn;
@@ -171,30 +203,38 @@ namespace Connect_Four
 		{
 			FillRows(4);
 		}
-
-		private void ApplyButton_Click(object sender, EventArgs e)
+		int ColourDelayTime;
+		private void SpeedTrackBar_Scroll(object sender, EventArgs e)
 		{
-			switch (comboBox1.Text)
+			ColourDelayTime = int.Parse(SpeedTrackBar.Value.ToString()) * 100;
+			if (SpeedTrackBar.Value == 1)
 			{
-				case "Black":
-					Board.BackColor = Color.Black;
-					break;
-				case "White":
-					Board.BackColor = Color.White;
-					break;
+				
 			}
-			if (cb_Music.Checked == true)
-			{
-				soundPlayer.Stop();
-			}
-			else
-			{
-				soundPlayer.PlayLooping();
-			}
-
+		}
+		async void ChangingColour()
+		{
+			Color Inidigo = Color.FromArgb(75, 0, 130);
+			
+			Board.BackColor = Red;
+			await Task.Delay(ColourDelayTime);
+			Board.BackColor = Orange;
+			await Task.Delay(ColourDelayTime);
+			Board.BackColor = Yellow;
+			await Task.Delay(ColourDelayTime);
+			Board.BackColor = Green;
+			await Task.Delay(ColourDelayTime);
+			Board.BackColor = Blue;
+			await Task.Delay(ColourDelayTime);
+			Board.BackColor = Inidigo;
+			await Task.Delay(ColourDelayTime);
+			Board.BackColor = Violet;
+			ChangingColour();
+		}
+		private async void ApplyButton_Click(object sender, EventArgs e)
+		{
 			SettingPanel.Visible = false;
 		}
-
 		private void comboBox1_KeyPress(object sender, KeyPressEventArgs e)
 		{
 			e.Handled = true;
@@ -212,16 +252,23 @@ namespace Connect_Four
 
 		private bool CheckWin(int x, int y)
 		{
+			Color test;
+			if (RedTurn)
+			{
+				test = Color.Red;
+			}
+			else
+			{
+				test = Color.Blue;
+			}
 			if (y >= 3)
 			{
-				if (Holes[x, y - 3].BackColor == Holes[x, y].BackColor)
+				if (Holes[x, y - 3].BackColor == test)
 				{
-					if (Holes[x, y - 2].BackColor == Holes[x, y].BackColor)
+					if (Holes[x, y - 2].BackColor == test)
 					{
-						if (Holes[x, y - 1].BackColor == Holes[x, y].BackColor)
+						if (Holes[x, y - 1].BackColor == test)
 						{
-							Holes[x, y].Text = "X";
-							Holes[x, y].Font = new Font("Microsoft Sans Serif", 35);
 							return true;
 						}
 					}
@@ -231,14 +278,14 @@ namespace Connect_Four
 			{
 				int nb = 0;
 				for (int dx = 1; x + dx < 7 && y + dx * dy < 6 && y + dx * dy >= 0; dx++)
-					if (Holes[x + dx, y + dx * dy].BackColor == Holes[x, y].BackColor)
+					if (Holes[x + dx, y + dx * dy].BackColor == test)
 					{
 						nb++;
 					}
 					else
 						break;
 				for (var dx = -1; x + dx >= 0 && y + dx * dy < 6 && y + dx * dy >= 0; dx--)
-					if (Holes[x + dx, y + dx * dy].BackColor == Holes[x, y].BackColor)
+					if (Holes[x + dx, y + dx * dy].BackColor == test)
 					{
 						nb++;
 					}
@@ -246,8 +293,6 @@ namespace Connect_Four
 						break;
 				if (nb >= 3)
 				{
-					Holes[x, y].Text = "X";
-					Holes[x, y].Font = new Font("Microsoft Sans Serif", 35);
 					return true;
 				}
 			}
@@ -280,6 +325,10 @@ namespace Connect_Four
 				{
 					RedTurn = true;
 				}
+				if (cb_Notification.Checked)
+				{
+					notifyIcon1.ShowBalloonTip(1000, "Setting Changed", "You've Turned On AI Mode!",ToolTipIcon.Info);
+				}
 			}
 			else
 			{
@@ -299,7 +348,7 @@ namespace Connect_Four
 		}
 		public int BestMove()
 		{
-			Random rnd = new Random();
+			/*Random rnd = new Random();
 			if (CheckRow(3))
 			{
 				return rnd.Next(7);
@@ -307,7 +356,30 @@ namespace Connect_Four
 			else
 			{
 				return 3;
+			}*/
+			for (int row = 0; row < 7; row++)
+			{
+				Space space = peekRow(row);
+				if (!CheckRow(row)&&CheckWin(space.x,space.y))
+				{
+					return row;
+				}
+				Space block = peekRow(row);
+				if (!CheckRow(row) && CheckWin(block.x, block.y))
+				{
+					return row;
+				}
 			}
+			int TempRnd = new Random().Next(6);
+			while (true)
+			{
+				if (!CheckRow(TempRnd))
+				{
+					TempRnd = new Random().Next(6);
+					break;
+				}				
+			}
+			return TempRnd;
 		}
 		private void AutoMove()
 		{
@@ -321,96 +393,107 @@ namespace Connect_Four
 
 		private void GameForm_KeyDown(object sender, KeyEventArgs e)
 		{
-			if (e.Shift && e.KeyCode == Keys.C)
 			{
-				if (chk_AI.Checked == true)
 				{
-					MessageBox.Show("Cleared the Board...\nStopped Playing Automatically!", "Warning!", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-					chk_AI.CheckState = CheckState.Unchecked;
-				}
-				BtnClear_Click_1(null, null);
-			}
-			if (e.Shift && e.KeyCode == Keys.Escape)
-			{
-				Application.Exit();
-			}
-			bool ArrowExists = false;
-			if (e.KeyCode == Keys.D || e.KeyCode == Keys.Right)
-			{
-				for (int row = 0; row < 7; row++)
-				{
-					if (Holes[row, 5].Text != "↓")
+					if (cb_Uncloseable.Checked&&(e.Alt && e.KeyCode == Keys.F4))
 					{
+						e.Handled = true;
+					}
+					if (e.Shift && e.KeyCode == Keys.C)
+					{
+						if (chk_AI.Checked == true)
+						{
+							MessageBox.Show("Cleared the Board...\nStopped Playing Automatically!", "Warning!", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+							chk_AI.CheckState = CheckState.Unchecked;
+						}
+						BtnClear_Click_1(null, null);
+					}
+					if (e.Shift && e.KeyCode == Keys.Escape)
+					{
+						Application.Exit();
+					}
+					if (!SettingPanel.Visible)
+					{
+						bool ArrowExists = false;
+						if (e.KeyCode == Keys.D || e.KeyCode == Keys.Right)
+						{
+							for (int row = 0; row < 7; row++)
+							{
+								if (Holes[row, 5].Text != "↓")
+								{
 
-					}
-					else
-					{
-						ArrowExists = true;
-					}
-				}
-				if (!ArrowExists)
-				{
-					int r = 0;
-					Holes[r, 5].Text = "↓";
-					ArrowPos = 0;
-				}
-				else
-				{
-					//Moves Arrow;
-					Holes[ArrowPos, 5].Text = "";
-					if (ArrowPos >= 6)
-					{
-						ArrowPos = -1;
-					}
-					Holes[++ArrowPos, 5].Text = "↓";
-				}
-			}
-			if (e.KeyCode == Keys.A || e.KeyCode == Keys.Left)
-			{
-				for (int row = 0; row < 7; row++)
-				{
-					if (Holes[row, 5].Text != "↓")
-					{
+								}
+								else
+								{
+									ArrowExists = true;
+								}
+							}
+							if (!ArrowExists)
+							{
+								int r = 0;
+								Holes[r, 5].Text = "↓";
+								ArrowPos = 0;
+							}
+							else
+							{
+								//Moves Arrow;
+								Holes[ArrowPos, 5].Text = "";
+								if (ArrowPos >= 6)
+								{
+									ArrowPos = -1;
+								}
+								Holes[++ArrowPos, 5].Text = "↓";
+							}
+						}
+						if (e.KeyCode == Keys.A || e.KeyCode == Keys.Left)
+						{
+							for (int row = 0; row < 7; row++)
+							{
+								if (Holes[row, 5].Text != "↓")
+								{
 
+								}
+								else
+								{
+									ArrowExists = true;
+								}
+							}
+							if (!ArrowExists)
+							{
+								Holes[6, 5].Text = "↓";
+								ArrowPos = 6;
+							}
+							else
+							{
+								//Moves arrow leftward
+								Holes[ArrowPos, 5].Text = "";
+								if (ArrowPos <= 0)
+								{
+									ArrowPos = 7;
+								}
+								Holes[--ArrowPos, 5].Text = "↓";
+							}
+						}
+						if (ArrowPos >= 0)
+						{
+							//Key press loop to drop piece
+							if (Holes[ArrowPos, 5].Text == "↓" && e.KeyCode == Keys.S)
+							{
+								FillRows(ArrowPos);
+							}
+						}
 					}
-					else
+					if (e.Control && e.KeyCode == Keys.M)
 					{
-						ArrowExists = true;
+						if (!cb_Music.Checked)
+						{
+							cb_Music.CheckState = CheckState.Checked; ApplyButton_Click(null, null);
+						}
+						else
+						{
+							cb_Music.CheckState = CheckState.Unchecked; ApplyButton_Click(null, null);
+						}
 					}
-				}
-				if (!ArrowExists)
-				{
-					Holes[6, 5].Text = "↓";
-					ArrowPos = 6;
-				}
-				else
-				{
-					//Moves arrow leftward
-					Holes[ArrowPos, 5].Text = "";
-					if (ArrowPos <= 0)
-					{
-						ArrowPos = 7;
-					}
-					Holes[--ArrowPos, 5].Text = "↓";
-				}
-			}
-			if (ArrowPos >= 0)
-			{
-				//Key press loop to drop piece
-				if (Holes[ArrowPos, 5].Text == "↓" && e.KeyCode == Keys.S)
-				{
-					FillRows(ArrowPos);
-				}
-			}
-			if (e.Control && e.KeyCode == Keys.M)
-			{
-				if (!cb_Music.Checked)
-				{
-					cb_Music.CheckState = CheckState.Checked; ApplyButton_Click(null, null);
-				}
-				else
-				{
-					cb_Music.CheckState = CheckState.Unchecked; ApplyButton_Click(null, null);
 				}
 			}
 		}
@@ -443,17 +526,72 @@ namespace Connect_Four
 
 		private async void GameForm_FormClosing(object sender, FormClosingEventArgs e)
 		{
-			var t = true;
-			e.Cancel = t;
-			while (Opacity > 0.0)
+			if (cb_Uncloseable.Checked)
 			{
-				await Task.Delay(80);
-				Opacity -= 0.05;
+				e.Cancel = true;
+				if (e.CloseReason == CloseReason.TaskManagerClosing)
+				{
+					
+				}
 			}
-			var f = false;
-			Opacity = 0;
-			e.Cancel = f;
-			Application.Exit();
+			else
+			{
+				var t = true;
+				e.Cancel = t;
+				while (Opacity > 0.0)
+				{
+					await Task.Delay(80);
+					Opacity -= 0.05;
+				}
+				var f = false;
+				Opacity = 0;
+				e.Cancel = f;
+				Application.Exit();
+			}
+		}
+
+		private void ComboBox1_SelectedIndexChanged(object sender, EventArgs e)
+		{
+			if (comboBox1.Text == "Rainbow")
+				SpeedTrackBar.Visible = true;
+			else
+				SpeedTrackBar.Visible = false;
+
+			if (comboBox1.Text == "Custom")
+			{
+				if (boardColorPicker.ShowDialog() == DialogResult.OK)
+				{
+					Board.BackColor = boardColorPicker.Color;
+				}
+			}
+			var DefaultColour = Color.FromKnownColor(KnownColor.Control);
+			switch (comboBox1.Text)
+			{
+				case "Black":
+					Board.BackColor = Color.Black;
+					break;
+				case "White":
+					Board.BackColor = Color.White;
+					break;
+				case "Default":
+					Board.BackColor = DefaultColour;
+					break;
+				case "Rainbow":
+					ChangingColour();
+					break;
+			}
+		}
+
+		private void Cb_Music_CheckedChanged(object sender, EventArgs e)
+		{
+			if (cb_Music.Checked == true)
+			{
+				soundPlayer.Stop();
+			}
+			else
+			{
+				soundPlayer.PlayLooping();
+			}
 		}
 	}
 }
